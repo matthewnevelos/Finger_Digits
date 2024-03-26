@@ -27,7 +27,6 @@ class ImageCaptureFrame(tk.Toplevel):
             attributes:
                 vs (cv2 VideoSource): webcam to capture images from
                 output_path (str): folder to save images to.
-                count (int): number used to create the next filename.
                 current_image (PIL Image): current image displayed
                 save_btn (ttk Button): press to save image
                 burst_btn (ttk Button): press for burst mode
@@ -167,6 +166,10 @@ class ImageCaptureFrame(tk.Toplevel):
 
 class Menu(tk.Tk):
     def __init__(self):
+        """
+        Main window, can select `Open Image Capture` to take more photos or `Open Production` to test the accuracy of the model
+        TODO add trainer option
+        """
         super().__init__()
         self.title("ENDG 411 Finger Digits")
 
@@ -177,16 +180,17 @@ class Menu(tk.Tk):
         self.production_btn.grid()
         
 
-    # Open capture window (a2)
     def open_capture(self):
+        """Open capture window (a2)"""
+        # Disable buttons so no other windows can open
         self.capture_btn.config(state="disabled")
         self.production_btn.config(state="disabled")
 
         self.capture_window = ImageCaptureFrame(self)
         self.capture_window.protocol("WM_DELETE_WINDOW", self.on_capture_close)
 
-    # Call capture destructor
     def on_capture_close(self):
+        """Method destroys capture child and reactivates menu buttons"""
         # Call window destructor
         self.capture_window.destructor()
 
@@ -195,16 +199,18 @@ class Menu(tk.Tk):
         self.production_btn.config(state="normal")
 
 
-    # Open production window (a4)
+
     def open_production(self):
+        """Open production window (a4)"""
+        # Disable buttons so no other windows can open
         self.capture_btn.config(state="disabled")
         self.production_btn.config(state="disabled")
-
+        # Turn menu buttons back on
         self.production_window = ProductionFrame(self)
         self.production_window.protocol("WM_DELETE_WINDOW", self.on_production_close)
 
-    # Call production destructor
     def on_production_close(self):
+        """Method destroys production child and reactivates menu buttons"""
         # Call window destructor
         self.production_window.destructor()
 
@@ -212,25 +218,7 @@ class Menu(tk.Tk):
         self.capture_btn.config(state="normal")
         self.production_btn.config(state="normal")
 
-    
-        
-# def main():
-#     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-    
-#     # construct the argument parse and parse the arguments
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("-o", "--output", default="./",
-#         help="path to output directory to store images (default: current folder")
-#     args = parser.parse_args()
-#     logging.info(f"saving images to {args.output}")
 
-    
-#     # start the app
-#     logging.info("starting GUI...")
-#     gui = tk.Tk() 
-#     gui.title("Image Capture")  
-#     ImageCaptureFrame(gui, args.output)
-#     gui.mainloop()
         
 def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
