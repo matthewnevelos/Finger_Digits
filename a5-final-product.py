@@ -10,6 +10,10 @@ from tkinter import filedialog, colorchooser
 import threading
 from fastai.vision.all import *
 
+# TODO change production to editing csv instead of saving screenshots
+# TODO add model training
+
+
 class ProductionFrame(tk.Toplevel):
     def __init__(self, parent):
         """ Initialize frame which uses OpenCV + Tkinter. 
@@ -31,8 +35,7 @@ class ProductionFrame(tk.Toplevel):
         # 0 is your default video camera
         self.vs = cv2.VideoCapture(0) 
         
-
-        # Use CPU for predict
+        # Use GPU for predict
         self.GPU = tk.BooleanVar()
 
         # Check if Cuda PyTorch installed
@@ -47,11 +50,10 @@ class ProductionFrame(tk.Toplevel):
 
         self.choose_model()
 
-        
         self.current_image = None 
         self.pil_font = ImageFont.truetype("fonts/DejaVuSans.ttf", 40)
 
-
+        # Default screenshot folder
         self.output_path = "screenshots/"
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
