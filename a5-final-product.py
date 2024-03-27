@@ -24,9 +24,6 @@ class Menu(tk.Tk):
         self.title("ENDG 411 Finger Digit Menu")
         logging.info("Starting Digit Wizard")
 
-        # self.capture_btn = ttk.Button(self, text="Open Image Capture", command=self.open_capture)
-        # self.capture_btn.pack()
-
         self.capture_btn = ttk.Button(self, text="open capture", command=lambda: self.open_window(ImageCaptureFrame, "Opening image capture window"))
         self.capture_btn.pack()
 
@@ -36,16 +33,23 @@ class Menu(tk.Tk):
         self.production_btn = ttk.Button(self, text="Open Production", command=lambda: self.open_window(ProductionFrame, "Opening production digit reading"))
         self.production_btn.pack()
 
-        # self.buttons = [self.capture_btn, self.train_btn, self.production_btn]
-        self.buttons = [self.capture_btn, self.production_btn]
+        self.buttons = [self.capture_btn, self.train_btn, self.production_btn]
         
 
     def open_window(self, Frame, opening_text):
-        """Open child window, disable buttons and link window to window close protocol"""
+        """
+        Create child window from a given frame
+        Parameters:
+            Frame (tk.Toplevel): The frame which will be made
+            opening_text (str): Text logged to console when window is opened
+        """
         logging.info(opening_text)
 
         self.disable_btns()
+
+        # Create new window
         window = Frame(self)
+        # Call the windows destructor and enable buttons in the Menu window when the child window is closed 
         window.protocol("WM_DELETE_WINDOW", lambda: (window.destructor(), self.enable_btns())) #must be a better way to do these 2 commands at once?
 
 
