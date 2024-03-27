@@ -140,7 +140,7 @@ class ProductionFrame(tk.Toplevel):
 
     def destructor(self):
         """ Destroy the root object and release all resources """
-        logging.info("closing GUI...")
+        logging.info("Closing production window")
         self.destroy()
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # it is not mandatory in this application
@@ -212,9 +212,6 @@ class ImageCaptureFrame(tk.Toplevel):
         
         # Prepare an attribute for the image
         self.current_image = None 
-        
-        # Custom method to execute when window is closed.
-        # master.protocol('WM_DELETE_WINDOW', self.destructor)
 
          # Button to save current image to file
         save_btn = ttk.Button(self, text="Save", command=self.save_image)
@@ -237,8 +234,6 @@ class ImageCaptureFrame(tk.Toplevel):
         # Label to display image
         self.panel = ttk.Label(self)  
         self.panel.grid(row=2, column=0,padx=10, pady=10)
-
-        # self.protocol("WM_DELETE_WINDOW", self.destructor)
 
         # start the display image loop
         self.video_loop()
@@ -327,7 +322,7 @@ class ImageCaptureFrame(tk.Toplevel):
     def destructor(self):
         """ Destroy the root object and release all resources """
         self.destroy() # close the Tk window
-        logging.info("closing GUI...")
+        logging.info("Closing image capture window")
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # close OpenCV windows
 
@@ -339,7 +334,8 @@ class Menu(tk.Tk):
         TODO add trainer option
         """
         super().__init__()
-        self.title("ENDG 411 Finger Digits")
+        self.title("ENDG 411 Finger Digit Menu")
+        logging.info("Starting Digit Wizard")
 
         self.capture_btn = ttk.Button(self, text="Open Image Capture", command=self.open_capture)
         self.capture_btn.pack()
@@ -350,6 +346,9 @@ class Menu(tk.Tk):
 
     def open_capture(self):
         """Open capture window (a2)"""
+
+        logging.info("Opening image capture window")
+
         # Disable buttons so no other windows can open
         self.capture_btn.config(state="disabled")
         self.production_btn.config(state="disabled")
@@ -367,9 +366,11 @@ class Menu(tk.Tk):
         self.production_btn.config(state="normal")
 
 
-
     def open_production(self):
         """Open production window (a4)"""
+
+        logging.info("Opening production window")
+
         # Disable buttons so no other windows can open
         self.capture_btn.config(state="disabled")
         self.production_btn.config(state="disabled")
@@ -386,7 +387,9 @@ class Menu(tk.Tk):
         self.capture_btn.config(state="normal")
         self.production_btn.config(state="normal")
 
-
+    def destroy(self):
+        logging.info("Closing Finger Digit Wizard")
+        super().destroy()
         
 def main():
     logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
