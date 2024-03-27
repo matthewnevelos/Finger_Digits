@@ -47,16 +47,16 @@ class ProductionFrame(tk.Toplevel):
             self.cuda = False
             self.GPU.set(False) 
 
-
         self.choose_model()
 
         self.current_image = None 
         self.pil_font = ImageFont.truetype("fonts/DejaVuSans.ttf", 40)
 
-        # Default screenshot folder
-        self.output_path = "screenshots/"
-        if not os.path.exists(self.output_path):
-            os.makedirs(self.output_path)
+        self.csv_file = open("finger_assessment.csv", 'a', newline='')
+        self.csv_writer = csv.writer(self.csv_file)
+
+        self.actual_digit_value = tk.StringVar()
+        self.actual_digit_value.set("None")   
 
         # Set colour of prob text
         self.colour = 'black'
@@ -66,13 +66,19 @@ class ProductionFrame(tk.Toplevel):
         self.panel = ttk.Label(self, image=self.current_image)  
 
         # Save screenshot button
-        self.save_btn = ttk.Button(self, text="Save", command=self.screenshot)
+        self.save_btn = ttk.Button(self, text="Save", command=self.save_data)
         
         # Change model button
         self.model_btn = ttk.Button(self, text="Change model", command=self.choose_model)
 
         # Change colour button
         self.colour_btn = ttk.Button(self, text="Change colour", command=self.change_colour)
+
+        # Change csv button
+        self.change_csv_btn = ttk.Button(self, text="Change CSV", command=self.change_csv)
+
+        # Actual digit entry
+        self.actual_digit = ttk.Entry(self, textvariable=self.actual_digit_value)
 
         # Use GPU checkbox
         self.gpu_enable = ttk.Checkbutton(self, text="Use GPU", command=self.gpu_accel_toggle, variable= self.GPU)
@@ -85,6 +91,8 @@ class ProductionFrame(tk.Toplevel):
         self.model_btn.pack(fill='x')
         self.colour_btn.pack(fill='x')
         self.gpu_enable.pack(side="top")
+        self.change_csv_btn.pack()
+        self.actual_digit.pack()
         self.panel.pack()
 
         # start a self.video_loop that constantly pools the video sensor
@@ -121,8 +129,9 @@ class ProductionFrame(tk.Toplevel):
             
             #predict
             if self.learn != None:
-                pred,pred_idx,probs = self.learn.predict(tensor(self.current_image))
-                pred_str = f"{pred} ({probs[pred_idx].item():.2f})"
+                self.pred,pred_idx,probs = self.learn.predict(tensor(self.current_image))
+                self.pred_prob = round(probs[pred_idx].item(), 2)
+                pred_str = f"{self.pred} ({self.pred_prob})"
             else:
                 pred_str = "NO MODEL LOADED"
     
@@ -143,20 +152,23 @@ class ProductionFrame(tk.Toplevel):
     def destructor(self):
         """ Destroy the root object and release all resources """
         logging.info("Closing production window")
+        self.csv_file.close()
         self.destroy()
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # it is not mandatory in this application
 
-    def screenshot(self):
-        """Take screenshot and save to screenshot folder"""
-        pic_count = len(os.listdir(self.output_path))
-        file_name =  '0'*(8-len(str(pic_count+1))) + str(pic_count + 1) + ".jpg"
-        self.current_image.save(self.output_path + file_name)
-        logging.info("Saved screenshots\{}".format(file_name))
+    def save_data(self):
+        """Save predicted data to csv file"""
+        data_to_write = [self.actual_digit_value.get().strip().lower(), self.pred, self.pred_prob]
+        if data_to_write[0] in ['one', 'two', 'three', 'four', 'five']:
+            self.csv_writer.writerow(data_to_write)
+            logging.info("Data recorded")
+        else:
+            logging.warning(f"'{data_to_write[0]}' is not a valid classification")
 
     def choose_model(self):
         """Change the learner used"""
-        self.model_path = filedialog.askopenfilename()
+        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.getcwd())
         try:
             self.learn = load_learner(self.model_path, cpu= not self.GPU.get())
             logging.info(f"learner {self.model_path} loaded")
@@ -172,6 +184,17 @@ class ProductionFrame(tk.Toplevel):
             logging.error(f"Model {self.model_path} Could not be loaded. Please try again")
             self.choose_model()
 
+    def change_csv(self):
+        csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd())
+        try:
+            self.csv_file.close()
+        except Exception as e:
+            logging.warning("Something went wrong:", e)
+        try:
+            self.csv_file = open(csv_path, 'a', newline='')
+            self.csv_writer = csv.writer(self.csv_file)
+        except FileNotFoundError:
+            logging.warning(f"No CSV found. Resorting to previous file")
 
     def change_colour(self):
         """Change the label colour"""
