@@ -33,16 +33,16 @@ class ProductionFrame(tk.Toplevel):
         
 
         # Use CPU for predict
-        self.CPU = tk.BooleanVar()
+        self.GPU = tk.BooleanVar()
 
         # Check if Cuda PyTorch installed
         if torch.cuda.is_available():
             self.cuda = True
-            self.CPU.set(False)
+            self.GPU.set(True)
         else:
             logging.warning("PyTorch Cuda not found")
             self.cuda = False
-            self.CPU.set(True) 
+            self.GPU.set(False) 
 
 
         self.choose_model()
@@ -73,16 +73,16 @@ class ProductionFrame(tk.Toplevel):
         self.colour_btn = ttk.Button(self, text="Change colour", command=self.change_colour)
 
         # Use GPU checkbox
-        self.cpu_enable = ttk.Checkbutton(self, text="Use CPU", command=self.gpu_accel_toggle, variable=self.CPU)
+        self.gpu_enable = ttk.Checkbutton(self, text="Use GPU", command=self.gpu_accel_toggle, variable= self.GPU)
         if not self.cuda:
-            self.cpu_enable.config(state=tk.DISABLED)
+            self.gpu_enable.config(state=tk.DISABLED)
 
         
         # Order Widgets
         self.save_btn.pack(fill='x')
         self.model_btn.pack(fill='x')
         self.colour_btn.pack(fill='x')
-        self.cpu_enable.pack(side="top")
+        self.gpu_enable.pack(side="top")
         self.panel.pack()
 
         # start a self.video_loop that constantly pools the video sensor
@@ -135,8 +135,8 @@ class ProductionFrame(tk.Toplevel):
              # show the image
             self.panel.config(image=imgtk)
         
-        # do this again after 30 milliseconds
-        self.after(30, self.video_loop, self.colour) 
+        # do this again after 20 milliseconds
+        self.after(20, self.video_loop, self.colour) 
 
     def destructor(self):
         """ Destroy the root object and release all resources """
@@ -156,7 +156,7 @@ class ProductionFrame(tk.Toplevel):
         """Change the learner used"""
         self.model_path = filedialog.askopenfilename()
         try:
-            self.learn = load_learner(self.model_path, cpu=self.CPU.get())
+            self.learn = load_learner(self.model_path, cpu= not self.GPU.get())
             logging.info(f"learner {self.model_path} loaded")
         except FileNotFoundError:
             try:
@@ -171,16 +171,14 @@ class ProductionFrame(tk.Toplevel):
             self.choose_model()
 
 
-        
-
     def change_colour(self):
         """Change the label colour"""
         self.colour = colorchooser.askcolor(title="Choose Label Colour")[1]
         logging.info(f"Colour changed to: {self.colour}")
 
     def gpu_accel_toggle(self):
-        logging.info(f"Using CPU: {self.CPU.get()}")
-        self.learn = load_learner(self.model_path, cpu=self.CPU.get())
+        logging.info(f"Using GPU: {self.GPU.get()}")
+        self.learn = load_learner(self.model_path, cpu=not self.GPU.get())
 
 class ImageCaptureFrame(tk.Toplevel):
     def __init__(self, parent):
