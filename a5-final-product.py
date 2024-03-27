@@ -59,15 +59,6 @@ class ProductionFrame(tk.Toplevel):
         # Set colour of prob text
         self.colour = 'black'
 
-
-        
-       
-
-        # FPS
-        self.fps_current = tk.StringVar()
-        self.fps_goal = tk.DoubleVar()
-        self.fps_goal.set(20)
-        
         # Create widgets
         # Panel shows image
         self.panel = ttk.Label(self, image=self.current_image)  
@@ -86,19 +77,12 @@ class ProductionFrame(tk.Toplevel):
         if not self.cuda:
             self.cpu_enable.config(state=tk.DISABLED)
 
-        # FPS
-        self.fps_current_label = ttk.Label(self, textvariable=self.fps_current)
-        self.fps_goal_text = ttk.Label(self, text="Target FPS: ")
-        self.fps_goal_entry = ttk.Entry(self, textvariable=self.fps_goal)
         
         # Order Widgets
         self.save_btn.pack(fill='x')
         self.model_btn.pack(fill='x')
         self.colour_btn.pack(fill='x')
         self.cpu_enable.pack(side="top")
-        self.fps_goal_text.pack()
-        self.fps_goal_entry.pack()
-        self.fps_current_label.pack()
         self.panel.pack()
 
         # start a self.video_loop that constantly pools the video sensor
@@ -120,7 +104,6 @@ class ProductionFrame(tk.Toplevel):
             Uses after() to call itself again after 30 msec.
         
         """
-        time1 = time.time()
         # read frame from video stream
         ok, frame = self.vs.read()  
         # frame captured without any errors
@@ -135,8 +118,11 @@ class ProductionFrame(tk.Toplevel):
             self.current_image = ImageOps.mirror(self.current_image) 
             
             #predict
-            pred,pred_idx,probs = self.learn.predict(tensor(self.current_image))
-            pred_str = f"{pred} ({probs[pred_idx].item():.2f})"
+            if self.learn != None:
+                pred,pred_idx,probs = self.learn.predict(tensor(self.current_image))
+                pred_str = f"{pred} ({probs[pred_idx].item():.2f})"
+            else:
+                pred_str = "NO MODEL LOADED"
     
             #add text
             draw = ImageDraw.Draw(self.current_image)
@@ -148,12 +134,9 @@ class ProductionFrame(tk.Toplevel):
             self.panel.imgtk = imgtk  
              # show the image
             self.panel.config(image=imgtk)
-
-        time2 = time.time()
-        self.fps_current.set(f"FPS: {int(1/(time2-time1))}")
         
         # do this again after 30 milliseconds
-        self.after(int(1000/self.fps_goal.get()), self.video_loop, self.colour) 
+        self.after(30, self.video_loop, self.colour) 
 
     def destructor(self):
         """ Destroy the root object and release all resources """
@@ -182,7 +165,7 @@ class ProductionFrame(tk.Toplevel):
 
             except AttributeError:
                 logging.error(f"No Model found")
-                self.choose_model()
+                self.learn=None
         except:
             logging.error(f"Model {self.model_path} Could not be loaded. Please try again")
             self.choose_model()
@@ -345,10 +328,11 @@ class ImageCaptureFrame(tk.Toplevel):
 
     def destructor(self):
         """ Destroy the root object and release all resources """
+        self.destroy() # close the Tk window
         logging.info("closing GUI...")
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # close OpenCV windows
-        self.destroy() # close the Tk window
+
 
 class Menu(tk.Tk):
     def __init__(self):
