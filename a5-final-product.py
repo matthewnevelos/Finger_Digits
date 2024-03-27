@@ -10,7 +10,6 @@ from tkinter import filedialog, colorchooser
 import threading
 from fastai.vision.all import *
 
-# TODO change production to editing csv instead of saving screenshots
 # TODO add model training
 
 
@@ -111,7 +110,7 @@ class ProductionFrame(tk.Toplevel):
             Uses fastai learner to predict label and probability,
             overlayed as text onto image displayed.
             
-            Uses after() to call itself again after 30 msec.
+            Uses after() to call itself again after 20 msec.
         
         """
         # read frame from video stream
@@ -185,6 +184,7 @@ class ProductionFrame(tk.Toplevel):
             self.choose_model()
 
     def change_csv(self):
+        """Change the CSV saved to"""
         csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd())
         try:
             self.csv_file.close()
@@ -202,6 +202,7 @@ class ProductionFrame(tk.Toplevel):
         logging.info(f"Colour changed to: {self.colour}")
 
     def gpu_accel_toggle(self):
+        """Toggle on and off using GPU acceleration"""
         logging.info(f"Using GPU: {self.GPU.get()}")
         self.learn = load_learner(self.model_path, cpu=not self.GPU.get())
 
@@ -355,8 +356,9 @@ class ImageCaptureFrame(tk.Toplevel):
 class Menu(tk.Tk):
     def __init__(self):
         """
-        Main window, can select `Open Image Capture` to take more photos or `Open Production` to test the accuracy of the model
-        TODO add trainer option
+        Main window, can select: `Open Image Capture` to take more photos
+                                 `Open Model Training` to train the model
+                                 `Open Production` to test the accuracy of the model
         """
         super().__init__()
         self.title("ENDG 411 Finger Digit Menu")
@@ -365,20 +367,23 @@ class Menu(tk.Tk):
         self.capture_btn = ttk.Button(self, text="Open Image Capture", command=self.open_capture)
         self.capture_btn.pack()
 
+        self.train_btn = ttk.Button(self, text="Open Training", command=self.open_training)
+        self.train_btn.pack()
+
         self.production_btn = ttk.Button(self, text="Open Production", command=self.open_production)
         self.production_btn.pack()
+
+        self.buttons = [self.capture_btn, self.train_btn, self.production_btn]
         
 
     def open_capture(self):
         """Open capture window (a2)"""
-
         logging.info("Opening image capture window")
 
-        # Disable buttons so no other windows can open
-        self.capture_btn.config(state="disabled")
-        self.production_btn.config(state="disabled")
-
+        self.disable_btns()
         self.capture_window = ImageCaptureFrame(self)
+
+        # Execute on window close
         self.capture_window.protocol("WM_DELETE_WINDOW", self.on_capture_close)
 
     def on_capture_close(self):
@@ -387,20 +392,37 @@ class Menu(tk.Tk):
         self.capture_window.destructor()
 
         # Turn menu buttons back on
-        self.capture_btn.config(state="normal")
-        self.production_btn.config(state="normal")
+        self.enable_btns()
+
+
+    def open_training(self):
+        """Open training window (a3)"""
+        logging.info("Opening training window")
+
+        # Disable buttons so no other windows can open
+        self.disable_btns()
+        self.training_window = TrainingFrame(self)
+
+        # Execute on window close
+        self.production_window.protocol("WM_DELETE_WINDOW", self.on_training_close)
+
+    def on_training_close(self):
+        """Method destroys production child and reactivates menu buttons"""
+        # Call window destructor
+        self.production_window.destructor()
+
+        # Turn menu buttons back on
+        self.enable_btns()
 
 
     def open_production(self):
         """Open production window (a4)"""
-
         logging.info("Opening production window")
 
-        # Disable buttons so no other windows can open
-        self.capture_btn.config(state="disabled")
-        self.production_btn.config(state="disabled")
-        # Turn menu buttons back on
+        self.disable_btns()
         self.production_window = ProductionFrame(self)
+
+        # Execute on window close
         self.production_window.protocol("WM_DELETE_WINDOW", self.on_production_close)
 
     def on_production_close(self):
@@ -409,10 +431,21 @@ class Menu(tk.Tk):
         self.production_window.destructor()
 
         # Turn menu buttons back on
-        self.capture_btn.config(state="normal")
-        self.production_btn.config(state="normal")
+        self.enable_btns()
+
+    def disable_btns(self):        
+        # Disable buttons so no other windows can open
+        for x in self.buttons:
+            x.config(state="disabled")
+
+    def enable_btns(self):
+        # Enable buttons so the window can be opened again
+        for x in self.buttons:
+            x.config(state="normal")
+
 
     def destroy(self):
+        """Kill parent window"""
         logging.info("Closing Finger Digit Wizard")
         super().destroy()
         
