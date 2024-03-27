@@ -157,9 +157,37 @@ class ImageCaptureFrame(tk.Toplevel):
 class TrainingFrame(tk.Toplevel):
     def __init__(self, parent):
         """
-        
+        Helper for trainer
+
+        Attributes:
+            train_path: path to train dataset directory
+            test_path: path to test dataset directory
+            batch_size: batch size when training model
+            epochs: number of epoch when training model
+            seed: seed used for rng of modules
+            lr: learning rate when training model
+            output_path: path of .pkl model
+            cuda: True if cuda PyTorch is installed
+            gpu_accel: True if GPU will be used to train model
+            confusion: True if confusion matrix is to be saved
+            confusion_path: output path of confusion matrix image
+            base_model: base model used for transfer learning i.e. resnet18, resnet50...
         """
-        pass
+        super().__init__(parent)
+        
+        self.train_path = tk.StringVar()
+        self.test_path = tk.StringVar()
+        self.batch_size = tk.IntVar()
+        self.epochs = tk.IntVar()
+        self.seed = tk.IntVar()
+        self.lr = tk.DoubleVar()
+        self.output_path = tk.StringVar()
+        self.cuda = tk.BooleanVar()
+        self.gpu_accel = tk.BooleanVar()
+        self.confusion = tk.BooleanVar()
+        self.confusion_path = tk.StringVar()
+        self.base_model: torch.nn.Module = None
+        
 
 class ProductionFrame(tk.Toplevel):
     def __init__(self, parent):

@@ -1,14 +1,8 @@
 # Adapted from code found in this thread:
 # https://stackoverflow.com/questions/32342935/using-opencv-with-tkinter
-from PIL import Image, ImageTk, ImageOps, ImageDraw, ImageFont
 import tkinter as tk
 from tkinter import ttk
-import cv2
-import os
 import logging
-from tkinter import filedialog, colorchooser
-import threading
-from fastai.vision.all import *
 from finger_digit.frames import ImageCaptureFrame, ProductionFrame
 
 # TODO add model training
