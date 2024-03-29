@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 import logging
-from finger_digit.frames import ImageCaptureFrame, ProductionFrame
+from finger_digit.frames import ImageCaptureFrame, ProductionFrame, TrainingFrame
 
 # TODO add model training
 
@@ -18,10 +18,10 @@ class Menu(tk.Tk):
         self.title("ENDG 411 Finger Digit Menu")
         logging.info("Starting Digit Wizard")
 
-        self.capture_btn = ttk.Button(self, text="open capture", command=lambda: self.open_window(ImageCaptureFrame, "Opening image capture window"))
+        self.capture_btn = ttk.Button(self, text="Open Capture", command=lambda: self.open_window(ImageCaptureFrame, "Opening image capture window"))
         self.capture_btn.pack()
 
-        self.train_btn = ttk.Button(self, text="Open Training", command=lambda: self.open_window())
+        self.train_btn = ttk.Button(self, text="Open Training", command=lambda: self.open_window(TrainingFrame, "Opening model training window"))
         self.train_btn.pack()
 
         self.production_btn = ttk.Button(self, text="Open Production", command=lambda: self.open_window(ProductionFrame, "Opening production digit reading"))

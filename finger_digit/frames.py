@@ -175,18 +175,106 @@ class TrainingFrame(tk.Toplevel):
         """
         super().__init__(parent)
         
+        # Instantiate and initialize tkinter variables
         self.train_path = tk.StringVar()
+        self.train_path.set("digits/train")
         self.test_path = tk.StringVar()
+        self.test_path.set("digits/test")
         self.batch_size = tk.IntVar()
+        self.batch_size.set(16)
         self.epochs = tk.IntVar()
+        self.epochs.set(12)
         self.seed = tk.IntVar()
+        self.seed.set(69)
         self.lr = tk.DoubleVar()
+        self.lr.set(3e-5)
         self.output_path = tk.StringVar()
+        self.output_path.set("models/finger_count.pkl")
         self.cuda = tk.BooleanVar()
+        if torch.cuda.is_available(): self.cuda.set(True) 
+        else: self.cuda.set(False)
         self.gpu_accel = tk.BooleanVar()
+        self.gpu_accel.set(self.cuda.get())
         self.confusion = tk.BooleanVar()
+        self.confusion.set(True)
         self.confusion_path = tk.StringVar()
-        self.base_model: torch.nn.Module = None
+        self.confusion_path.set("models/confusion matrix/img1.png")
+        self.model_list = ["resnet18","resnet34","resnet50","resnet101","resnet152", 
+                           "resnext50_32x4d","resnext101_32x8d","resnext101_64x4d",]
+        self.base_model = self.model_list[0]
+
+        # #Set up all the widgets
+        # self.train_header = tk.Label(self, text="Train data:")
+        # self.train_button = tk.Button(self, text="Browse", command= lambda: self.dir_path(self.train_path))
+        # self.train_entry = tk.Entry(self, textvariable=self.train_path)
+
+        # self.train_header.grid(row=0, column=0, padx=5, pady=5)
+        # self.train_entry.grid(row=0, column=1, ipadx=20, padx=5, pady=5)
+        # self.train_button.grid(row=0, column=2, padx=5, pady=5)
+
+        self.create_btn(self.train_path, True, (0,0), "Train path:")
+        self.create_btn(self.test_path, True, (1,0), "Test path:")
+
+    def create_btn(self, attr, mode, loc, text):
+        """
+        Create a browse button and all accompanying widgets
+        The only buttons are `browse` buttons which go along with changing the path of a directory or file
+        Label - Entry - Button
+        attr: tk.StringVar which will be set to the path of directory/file
+        mode: True => browse directory
+              False => browse file
+        loc: (row, column) location of label
+        text: Label text
+        """
+        # Create the widgets
+        label=tk.Label(self, text=text)
+        entry=tk.Entry(self, textvariable=attr)
+        if mode:
+            button = tk.Button(self, text="Browse", command=lambda: self.dir_path(attr))
+        else:
+            button = tk.Button(self, text="Browse", command=lambda: self.save_path(attr))
+
+        # Place the widgets
+        label.grid(row=loc[0], column=loc[1], padx=5, pady=5)
+        entry.grid(row=loc[0], column=loc[1]+1, ipadx=20, padx=5, pady=5)
+        button.grid(row=loc[0], column=loc[1]+2, padx=5, pady=5)
+
+    def create_widget(self, Widget:tk.Widget, attr, text, loc):
+        """
+        Create a pair of widgets in the form label - widget
+        widget tk.Widget: The widget to be used i.e. Entry, Checkbutton...
+        attr: the class attribute variable
+        text: label text
+        loc (int, int): (row, column) of the label
+        """
+        label=tk.Label(self, text=text)
+        if Widget==tk.Entry:
+            widget = tk.Entry(self, textvariable=attr)
+        elif Widget==tk.Checkbutton:
+            widget = tk.Checkbutton(self, variable=attr)
+        else:
+            logging.warning("What other type is there?")
+
+        label.grid(row=loc[0], column=loc[1], sticky='e')
+        widget.grid(row=loc[0], column=loc[1]+2, sticky='w')
+
+
+
+    def dir_path(self, attr: tk.StringVar):
+        """Set a StringVar to the relative path for a directory"""
+        path = filedialog.askdirectory()
+        rel_path = os.path.relpath(path)
+        attr.set(rel_path)
+
+    def save_path(self, attr: tk.StringVar):
+        """Set a StringVar to the relative path of the file"""
+        path = filedialog.asksaveasfilename()
+        rel_path = os.path.relpath(path)
+        attr.set(rel_path)
+
+    def destructor(self):
+        logging.info("Closing model training window")
+        self.destroy()
         
 
 class ProductionFrame(tk.Toplevel):
