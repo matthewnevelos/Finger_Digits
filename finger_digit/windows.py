@@ -204,20 +204,33 @@ class TrainingWindow(tk.Toplevel):
         self.base_model = self.model_list[0]
 
 
-        self.btn_frame = ttk.Frame(self)
-        self.create_btn(self.btn_frame, self.train_path, True, (0,0), "Train path:")
-        self.create_btn(self.btn_frame, self.test_path, True, (1,0), "Test path:")
+        self.param_frame = ttk.LabelFrame(self, text="Model parameters", padding=(20, 20))
 
-        self.entry_frame = ttk.Frame(self)
-        self.create_widget(self.entry_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))
-        self.create_widget(self.entry_frame, self.epochs, ttk.Entry, "Number of epochs:", 7, (1, 3))
+        self.btn_frame = ttk.Frame(self.param_frame)
+        self.create_btn(self.btn_frame, self.train_path, True, (0,0), "Train path:")                                    # Training directory path
+        self.create_btn(self.btn_frame, self.test_path, True, (1,0), "Test path:")                                      # Test directory path
 
-        self.btn_frame2 = ttk.Frame(self)
-        self.create_btn(self.btn_frame2, self.output_path, True, (0,0), "balls:")
+        self.widget_frame = ttk.Frame(self.param_frame)
+        self.create_widget(self.widget_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))                      # Batch size
+        self.create_widget(self.widget_frame, self.epochs, ttk.Entry, "Number of epochs:", 7, (1, 3))                   # Number of epochs
+        self.create_widget(self.widget_frame, self.seed, ttk.Entry, "Seed:", 7, (2,0))                                  # Seed
+        self.create_widget(self.widget_frame, self.lr, ttk.Entry, "Learning rate:", 7, (2,3))                           # Learning rate
+        self.create_widget(self.widget_frame, self.base_model, ttk.Combobox, "Base model:", 7, (3,2))                   # Base model
+        self.create_widget(self.widget_frame, self.gpu_accel, ttk.Checkbutton, "Use GPU:", 0, (4,0))                    # GPU acceleration
+        self.create_widget(self.widget_frame, self.confusion, ttk.Checkbutton, "Generate confusion matrix:", 0, (4,3))  # Create confusion matrix
+
+        self.btn_frame2 = ttk.Frame(self.param_frame)
+        self.create_btn(self.btn_frame2, self.output_path, True, (0,0), "Model output:")                                # Saved model output
+        self.create_btn(self.btn_frame2, self.confusion_path, True, (1,0), "Confusion output:")                  # Confusion matrix output
 
         self.btn_frame.pack()
-        self.entry_frame.pack()
+        self.widget_frame.pack()
         self.btn_frame2.pack()
+
+        self.param_frame.grid(row=0, column=0, pady=10)
+
+        self.generate_btn = ttk.Button(self, text="Generate", command=self.generate)
+        self.generate_btn.grid(row=1, column=0, ipadx=200, ipady=7, pady=(0, 8))
 
 
 
@@ -236,7 +249,7 @@ class TrainingWindow(tk.Toplevel):
         text: Label text
         """
         # Create the widgets
-        label=ttk.Label(frame, text=text)
+        label=ttk.Label(frame, text=text, justify='center', width=16)
         entry=ttk.Entry(frame, textvariable=attr)
         if mode:
             button = ttk.Button(frame, text="Browse", command=lambda: self.dir_path(attr))
@@ -245,7 +258,7 @@ class TrainingWindow(tk.Toplevel):
 
         # Place the widgets
         label.grid(row=loc[0], column=loc[1], padx=5, pady=5)
-        entry.grid(row=loc[0], column=loc[1]+1, ipadx=20, padx=5, pady=5)
+        entry.grid(row=loc[0], column=loc[1]+1, ipadx=40, padx=5, pady=5)
         button.grid(row=loc[0], column=loc[1]+2, padx=5, pady=5)
 
 
@@ -263,14 +276,17 @@ class TrainingWindow(tk.Toplevel):
         if widget_type==ttk.Entry:
             widget = ttk.Entry(frame, textvariable=attr, justify='center', width=width)
         elif widget_type==ttk.Checkbutton:
-            widget = ttk.Checkbutton(frame, variable=attr, width=width)
-        else:
-            logging.warning("What other type is to be used?")
+            widget = ttk.Checkbutton(frame, variable=attr)
+        elif widget_type==ttk.Combobox:
+            # Only one Combobox so its hardcoded
+            widget = ttk.Combobox(frame, textvariable=attr, width=16)
+            widget['values'] = self.model_list
+            widget.set(widget['values'][0])
 
-        label.grid(row=loc[0], column=loc[1], sticky='e', padx=(30,10), pady=5)
-        widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=5, ipadx=0)
+        label.grid(row=loc[0], column=loc[1], sticky='e', padx=(15,0), pady=6)
+        widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=6, ipadx=0, sticky='w')
 
-
+    def generate(self):pass
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
