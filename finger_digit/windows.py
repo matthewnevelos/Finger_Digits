@@ -4,8 +4,10 @@ from tkinter import ttk
 import cv2
 import os
 import logging
-from tkinter import filedialog, colorchooser, Scrollbar
+from tkinter import filedialog, colorchooser
 import threading
+import subprocess
+import platform
 from fastai.vision.all import *
 
 class ImageCaptureWindow(tk.Toplevel):
@@ -197,14 +199,15 @@ class TrainingWindow(tk.Toplevel):
         self.confusion_path = tk.StringVar()
         self.confusion_path.set("models/confusion matrix/img1.png")
         self.model_list = ["resnet18","resnet34","resnet50","resnet101","resnet152", 
-                           "resnext50_32x4d","resnext101_32x8d","resnext101_64x4d",]
+                           "resnext50_32x4d","resnext101_32x8d","resnext101_64x4d"]
         self.base_model = self.model_list[0]
+        self.output_function = tk.StringVar()
 
 
         self.param_frame = ttk.LabelFrame(self, text="Model parameters", padding=(20, 20))
 
         self.btn_frame = ttk.Frame(self.param_frame)
-        self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Train path:")                                    # Training directory path                                    # Test directory path
+        self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Train path:")                                    # Training directory path
 
         self.widget_frame = ttk.Frame(self.param_frame)
         self.create_widget(self.widget_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))                      # Batch size
@@ -226,7 +229,13 @@ class TrainingWindow(tk.Toplevel):
         self.param_frame.grid(row=0, column=0, pady=10)
 
         self.generate_btn = ttk.Button(self, text="Generate", command=self.generate)
-        self.generate_btn.grid(row=1, column=0, ipadx=200, ipady=7, pady=(0, 8))
+        self.generate_btn.grid(row=1, column=0, ipadx=200, ipady=7, pady=(2, 10))
+
+        self.function_entry = ttk.Entry(self, textvariable=self.output_function, width=55)
+        self.function_entry.grid(row=2, column=0, pady=5)
+
+        self.copy_btn = ttk.Button(self, text="Copy to clipboard", command=self.copy)
+        self.copy_btn.grid(row=3, column=0, pady=5)
 
 
 
@@ -273,6 +282,7 @@ class TrainingWindow(tk.Toplevel):
             widget = ttk.Entry(frame, textvariable=attr, justify='center', width=width)
         elif widget_type==ttk.Checkbutton:
             widget = ttk.Checkbutton(frame, variable=attr)
+            if attr.get()==False: widget.config(state=tk.DISABLED)
         elif widget_type==ttk.Combobox:
             # Only one Combobox so its hardcoded
             widget = ttk.Combobox(frame, textvariable=attr, width=16)
@@ -281,10 +291,6 @@ class TrainingWindow(tk.Toplevel):
 
         label.grid(row=loc[0], column=loc[1], sticky='e', padx=(15,0), pady=6)
         widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=6, ipadx=0, sticky='w')
-
-    def generate(self):
-        pass
-        # cmd = f"train_model(train_folder={self.train_path.get()}, , batch_size={self.}, epochs={}, seed={}, lr={}, output={}, save_conf={}, conf_out={})"
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
@@ -297,6 +303,15 @@ class TrainingWindow(tk.Toplevel):
         path = filedialog.asksaveasfilename()
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
+
+    def generate(self):
+        self.output_function.set(f"train_model(digit_folder={self.digit_path.get()}, batch_size={self.batch_size.get()}, epochs={self.epochs.get()}, seed={self.seed.get()}, lr={self.lr.get()}, output={self.output_path.get()}, save_conf={self.confusion.get()}, conf_out={self.confusion_path.get()}, model={self.base_model})")
+
+    def copy(self):
+        if platform.system() == "Windows":
+            subprocess.run("clip", text=True, input=self.output_function.get())
+        else:
+            subprocess.run("pbcopy", text=True, input=self.output_function.get())
 
     def destructor(self):
         logging.info("Closing model training window")
