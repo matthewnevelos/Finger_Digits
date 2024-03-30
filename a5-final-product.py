@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 import logging
-from finger_digit.frames import ImageCaptureFrame, ProductionFrame, TrainingFrame
+from finger_digit.apps import ImageCaptureFrame, ProductionFrame, TrainingFrame
 
 # TODO add model training
 

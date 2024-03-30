@@ -4,7 +4,7 @@ from tkinter import ttk
 import cv2
 import os
 import logging
-from tkinter import filedialog, colorchooser
+from tkinter import filedialog, colorchooser, Scrollbar
 import threading
 from fastai.vision.all import *
 
@@ -203,60 +203,72 @@ class TrainingFrame(tk.Toplevel):
                            "resnext50_32x4d","resnext101_32x8d","resnext101_64x4d",]
         self.base_model = self.model_list[0]
 
-        # #Set up all the widgets
-        # self.train_header = tk.Label(self, text="Train data:")
-        # self.train_button = tk.Button(self, text="Browse", command= lambda: self.dir_path(self.train_path))
-        # self.train_entry = tk.Entry(self, textvariable=self.train_path)
 
-        # self.train_header.grid(row=0, column=0, padx=5, pady=5)
-        # self.train_entry.grid(row=0, column=1, ipadx=20, padx=5, pady=5)
-        # self.train_button.grid(row=0, column=2, padx=5, pady=5)
+        self.btn_frame = ttk.Frame(self)
+        self.create_btn(self.btn_frame, self.train_path, True, (0,0), "Train path:")
+        self.create_btn(self.btn_frame, self.test_path, True, (1,0), "Test path:")
 
-        self.create_btn(self.train_path, True, (0,0), "Train path:")
-        self.create_btn(self.test_path, True, (1,0), "Test path:")
+        self.entry_frame = ttk.Frame(self)
+        self.create_widget(self.entry_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))
+        self.create_widget(self.entry_frame, self.epochs, ttk.Entry, "Number of epochs:", 7, (1, 3))
 
-    def create_btn(self, attr, mode, loc, text):
+        self.btn_frame2 = ttk.Frame(self)
+        self.create_btn(self.btn_frame2, self.output_path, True, (0,0), "balls:")
+
+        self.btn_frame.pack()
+        self.entry_frame.pack()
+        self.btn_frame2.pack()
+
+
+
+    def create_btn(self, frame: ttk.Frame, attr, mode, loc, text):
         """
-        Create a browse button and all accompanying widgets
-        The only buttons are `browse` buttons which go along with changing the path of a directory or file
+        Create a frame to hold data in the form Label - Entry, Button.
+        This is for variables which hold a path since there is a browse button associated with it.
+        Things get ugly when shared with the 2 column variables (Label - Entry)
+        The buttons are `browse` buttons which go along with changing the path of a directory or file
         Label - Entry - Button
+        frame ttk.Frame: The frame which the 3 widgets will be placed in
         attr: tk.StringVar which will be set to the path of directory/file
         mode: True => browse directory
               False => browse file
-        loc: (row, column) location of label
+        loc (int, int): (row, column) location of label within the frame
         text: Label text
         """
         # Create the widgets
-        label=tk.Label(self, text=text)
-        entry=tk.Entry(self, textvariable=attr)
+        label=ttk.Label(frame, text=text)
+        entry=ttk.Entry(frame, textvariable=attr)
         if mode:
-            button = tk.Button(self, text="Browse", command=lambda: self.dir_path(attr))
+            button = ttk.Button(frame, text="Browse", command=lambda: self.dir_path(attr))
         else:
-            button = tk.Button(self, text="Browse", command=lambda: self.save_path(attr))
+            button = ttk.Button(frame, text="Browse", command=lambda: self.save_path(attr))
 
         # Place the widgets
         label.grid(row=loc[0], column=loc[1], padx=5, pady=5)
         entry.grid(row=loc[0], column=loc[1]+1, ipadx=20, padx=5, pady=5)
         button.grid(row=loc[0], column=loc[1]+2, padx=5, pady=5)
 
-    def create_widget(self, Widget:tk.Widget, attr, text, loc):
+
+    def create_widget(self, frame: ttk.Frame, attr, widget_type:ttk.Widget, text, width, loc):
         """
-        Create a pair of widgets in the form label - widget
-        widget tk.Widget: The widget to be used i.e. Entry, Checkbutton...
+        Create a frame which holds pairs of widgets in the form label - widget
+        frame ttk.Frame: the frame which the pair of widgets will be placed
+        widget_type tk.Widget: The widget to be used i.e. Entry, Checkbutton...
         attr: the class attribute variable
         text: label text
-        loc (int, int): (row, column) of the label
+        width int: width of widget
+        loc (int, int): (row, column) of the label within the frame
         """
-        label=tk.Label(self, text=text)
-        if Widget==tk.Entry:
-            widget = tk.Entry(self, textvariable=attr)
-        elif Widget==tk.Checkbutton:
-            widget = tk.Checkbutton(self, variable=attr)
+        label=ttk.Label(frame, text=text)
+        if widget_type==ttk.Entry:
+            widget = ttk.Entry(frame, textvariable=attr, justify='center', width=width)
+        elif widget_type==ttk.Checkbutton:
+            widget = ttk.Checkbutton(frame, variable=attr, width=width)
         else:
-            logging.warning("What other type is there?")
+            logging.warning("What other type is to be used?")
 
-        label.grid(row=loc[0], column=loc[1], sticky='e')
-        widget.grid(row=loc[0], column=loc[1]+2, sticky='w')
+        label.grid(row=loc[0], column=loc[1], sticky='e', padx=(30,10), pady=5)
+        widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=5, ipadx=0)
 
 
 
