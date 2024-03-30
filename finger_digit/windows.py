@@ -160,8 +160,7 @@ class TrainingWindow(tk.Toplevel):
         Helper for trainer
 
         Attributes:
-            train_path: path to train dataset directory
-            test_path: path to test dataset directory
+            digit_path: path to dataset directory. Must be in the form `digit_path/train` and `digit_path/valid`
             batch_size: batch size when training model
             epochs: number of epoch when training model
             seed: seed used for rng of modules
@@ -176,10 +175,8 @@ class TrainingWindow(tk.Toplevel):
         super().__init__(parent)
         
         # Instantiate and initialize tkinter variables
-        self.train_path = tk.StringVar()
-        self.train_path.set("digits/train")
-        self.test_path = tk.StringVar()
-        self.test_path.set("digits/test")
+        self.digit_path = tk.StringVar()
+        self.digit_path.set("digits")
         self.batch_size = tk.IntVar()
         self.batch_size.set(16)
         self.epochs = tk.IntVar()
@@ -207,8 +204,7 @@ class TrainingWindow(tk.Toplevel):
         self.param_frame = ttk.LabelFrame(self, text="Model parameters", padding=(20, 20))
 
         self.btn_frame = ttk.Frame(self.param_frame)
-        self.create_btn(self.btn_frame, self.train_path, True, (0,0), "Train path:")                                    # Training directory path
-        self.create_btn(self.btn_frame, self.test_path, True, (1,0), "Test path:")                                      # Test directory path
+        self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Train path:")                                    # Training directory path                                    # Test directory path
 
         self.widget_frame = ttk.Frame(self.param_frame)
         self.create_widget(self.widget_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))                      # Batch size
@@ -286,7 +282,9 @@ class TrainingWindow(tk.Toplevel):
         label.grid(row=loc[0], column=loc[1], sticky='e', padx=(15,0), pady=6)
         widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=6, ipadx=0, sticky='w')
 
-    def generate(self):pass
+    def generate(self):
+        pass
+        # cmd = f"train_model(train_folder={self.train_path.get()}, , batch_size={self.}, epochs={}, seed={}, lr={}, output={}, save_conf={}, conf_out={})"
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
