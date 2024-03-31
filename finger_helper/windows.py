@@ -359,7 +359,7 @@ class ProductionWindow(tk.Toplevel):
         self.csv_writer = csv.writer(self.csv_file)
 
         self.actual_digit_value = tk.StringVar()
-        self.actual_digit_value.set("None")   
+        self.actual_digit_value.set("one")   
 
         # Set colour of prob text
         self.colour = 'black'
