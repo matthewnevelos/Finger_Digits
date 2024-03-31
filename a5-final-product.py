@@ -26,6 +26,27 @@ class Menu(tk.Tk):
         self.production_btn.pack()
 
         self.buttons = [self.capture_btn, self.train_btn, self.production_btn]
+
+        # Setup program instructions
+        self.description = tk.Text(self, wrap="word")
+        self.description.insert('end', "How to use this program:\n", 'header')
+        self.description.insert('end', "Step 1: Use `capture` to take photos and save as:\n")
+        self.description.insert('end', "  Main Folder\n  |--train\n     |--one\n     |--two\n  |--valid\n     |--one\n     |--two\n")
+        self.description.insert('end', "Step 2: Use `Training` to get code, copy and paste code into 'trainer.ipynb'\n")
+        self.description.insert('end', "Step 3: Use `Production` to analyze the model\n")
+        self.description.tag_add("wrap_indent", "2.20", "3.0")
+        self.description.tag_add("wrap_indent", "10.20", "11.0")
+        self.description.tag_add("wrap_indent", "11.20", "12.0")
+        self.description.tag_add("bold_ital", "10.11", "10.22")
+        self.description.tag_add("bold_ital", "11.11", "11.24")
+        self.description.tag_add("italic", "10.61", "10.126")
+        self.description.tag_configure('header', font=('Helvetica', 10, "bold"))
+        self.description.tag_configure("wrap_indent", lmargin2=20)
+        self.description.tag_configure("bold_ital", font=(('Helvetica', 8, "italic", "bold")))
+        self.description.tag_configure("italic", font=(('Helvetica', 8, "italic")))
+
+        self.description.pack(pady=9)
+        
         
 
     def open_window(self, window, opening_text):
