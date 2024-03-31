@@ -1,5 +1,5 @@
-/digits
-/pics
+**/train
+**/valid
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -3,9 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 import logging
-from finger_digit.windows import ImageCaptureWindow, ProductionWindow, TrainingWindow
-
-# TODO add model training
+from finger_helper.windows import ImageCaptureWindow, ProductionWindow, TrainingWindow
 
 class Menu(tk.Tk):
     def __init__(self):

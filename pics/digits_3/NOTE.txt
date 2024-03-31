@@ -1,0 +1,21 @@
+What these photos cover:
+from digits_2:
+{
+fingers bigger/smaller than head
+multiple people
+busy backgrounds
+just hand, no people
+hand in front of light
+fingers covering face
+What it does not cover
+back of the hand
+dim lighting
+different angles of the hand
+WITHOUT --- different textured hands (gloves)
+different coloured settings
+}
+
+In addition:
+Add a 'zero' digit
+Add a 'none'
+	when there is no hand in frame
