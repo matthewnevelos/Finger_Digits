@@ -203,9 +203,11 @@ class TrainingWindow(tk.Toplevel):
         self.base_model = self.model_list[0]
         self.output_function = tk.StringVar()
 
-
+        # Frame for all of the model parameters
+        # Contains multiple frames made up of either self.create_widget() or self.create_btn()
         self.param_frame = ttk.LabelFrame(self, text="Model parameters", padding=(20, 20))
 
+        # Create the sub frames
         self.btn_frame = ttk.Frame(self.param_frame)
         self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Train path:")                                    # Training directory path
 
@@ -220,23 +222,27 @@ class TrainingWindow(tk.Toplevel):
 
         self.btn_frame2 = ttk.Frame(self.param_frame)
         self.create_btn(self.btn_frame2, self.output_path, True, (0,0), "Model output:")                                # Saved model output
-        self.create_btn(self.btn_frame2, self.confusion_path, True, (1,0), "Confusion output:")                  # Confusion matrix output
+        self.create_btn(self.btn_frame2, self.confusion_path, True, (1,0), "Confusion output:")                         # Confusion matrix output
 
+        # Pack sub frames into the parameter frame
         self.btn_frame.pack()
         self.widget_frame.pack()
         self.btn_frame2.pack()
 
+        # Place paramater frame
         self.param_frame.grid(row=0, column=0, pady=10)
 
+        # Generate the code
         self.generate_btn = ttk.Button(self, text="Generate", command=self.generate)
         self.generate_btn.grid(row=1, column=0, ipadx=200, ipady=7, pady=(2, 10))
 
+        # Entry to view/copy code
         self.function_entry = ttk.Entry(self, textvariable=self.output_function, width=55)
         self.function_entry.grid(row=2, column=0, pady=5)
 
+        # Button to automatically copy code to clipboard
         self.copy_btn = ttk.Button(self, text="Copy to clipboard", command=self.copy)
         self.copy_btn.grid(row=3, column=0, pady=5)
-
 
 
     def create_btn(self, frame: ttk.Frame, attr, mode, loc, text):
@@ -305,15 +311,18 @@ class TrainingWindow(tk.Toplevel):
         attr.set(rel_path)
 
     def generate(self):
+        """Generate code ready to copy and paste into trainer.ipynb"""
         self.output_function.set(f"train_model(digit_folder={self.digit_path.get()}, batch_size={self.batch_size.get()}, epochs={self.epochs.get()}, seed={self.seed.get()}, lr={self.lr.get()}, output={self.output_path.get()}, save_conf={self.confusion.get()}, conf_out={self.confusion_path.get()}, model={self.base_model})")
 
     def copy(self):
+        """Copy generated code to clipboard"""
         if platform.system() == "Windows":
             subprocess.run("clip", text=True, input=self.output_function.get())
         else:
             subprocess.run("pbcopy", text=True, input=self.output_function.get())
 
     def destructor(self):
+        """Destroy TrainingWindow"""
         logging.info("Closing model training window")
         self.destroy()       
 

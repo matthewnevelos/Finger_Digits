@@ -11,11 +11,14 @@ class Menu(tk.Tk):
         Main window, can select: `Open Image Capture` to take more photos
                                  `Open Model Training` to train the model
                                  `Open Production` to test the accuracy of the model
+        This is the master of all the other windows
         """
         super().__init__()
+
         self.title("ENDG 411 Finger Digit Menu")
         logging.info("Starting Digit Wizard")
 
+        # Make buttons to open windows
         self.capture_btn = ttk.Button(self, text="Open Capture", command=lambda: self.open_window(ImageCaptureWindow, "Opening image capture window"))
         self.capture_btn.pack()
 
@@ -27,7 +30,12 @@ class Menu(tk.Tk):
 
         self.buttons = [self.capture_btn, self.train_btn, self.production_btn]
 
-        # Setup program instructions
+        self.setup_description()
+
+
+    def setup_description(self):
+        """Create tk.Text widget which displays insturctions on how to use the program"""
+
         self.description = tk.Text(self, wrap="word")
         self.description.insert('end', "How to use this program:\n", 'header')
         self.description.insert('end', "Step 1: Use `capture` to take photos and save as:\n")
@@ -46,8 +54,6 @@ class Menu(tk.Tk):
         self.description.tag_configure("italic", font=(('Helvetica', 8, "italic")))
 
         self.description.pack(pady=9)
-        
-        
 
     def open_window(self, window, opening_text):
         """
@@ -65,17 +71,15 @@ class Menu(tk.Tk):
         # Call the windows destructor and enable buttons in the Menu window when the child window is closed 
         window.protocol("WM_DELETE_WINDOW", lambda: (window.destructor(), self.enable_btns())) #must be a better way to do these 2 commands at once?
 
-
     def disable_btns(self):        
-        # Disable buttons so no other windows can open
+        """Disable buttons so no other windows can open"""
         for x in self.buttons:
             x.config(state="disabled")
 
     def enable_btns(self):
-        # Enable buttons so the window can be opened again
+        """Enable buttons so the window can be opened again"""
         for x in self.buttons:
             x.config(state="normal")
-
 
     def destroy(self):
         """Kill parent window"""
