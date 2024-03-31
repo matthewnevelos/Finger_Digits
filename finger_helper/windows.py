@@ -110,7 +110,7 @@ class ImageCaptureWindow(tk.Toplevel):
         """
         Add button for popup gui to change directory
         """
-        self.output_path = filedialog.askdirectory(initialdir=os.getcwd()) + '/'
+        self.output_path = filedialog.askdirectory(initialdir=os.getcwd(), title="Set output directory") + '/'
         self.relpath.set('/' + os.path.relpath(self.output_path, os.getcwd()))
         count = len(os.listdir(self.output_path))
         logging.info("Change to {}".format(self.output_path))
@@ -300,13 +300,13 @@ class TrainingWindow(tk.Toplevel):
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
-        path = filedialog.askdirectory(initialdir=os.getcwd())
+        path = filedialog.askdirectory(initialdir=os.getcwd(), title="Set directory")
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
     def save_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path of the file"""
-        path = filedialog.asksaveasfilename(initialdir=os.getcwd())
+        path = filedialog.asksaveasfilename(initialdir=os.getcwd(), title="Set file path")
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
@@ -480,7 +480,7 @@ class ProductionWindow(tk.Toplevel):
 
     def choose_model(self):
         """Change the learner used"""
-        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.getcwd())
+        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.getcwd(), title="Set model file path")
         try:
             self.learn = load_learner(self.model_path, cpu= not self.GPU.get())
             logging.info(f"learner {self.model_path} loaded")
@@ -498,7 +498,7 @@ class ProductionWindow(tk.Toplevel):
 
     def change_csv(self):
         """Change the CSV saved to"""
-        csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd())
+        csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd(), title="Select CSV file")
         try:
             self.csv_file.close()
         except Exception as e:
