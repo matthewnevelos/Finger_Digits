@@ -110,7 +110,7 @@ class ImageCaptureWindow(tk.Toplevel):
         """
         Add button for popup gui to change directory
         """
-        self.output_path = filedialog.askdirectory() + '/'
+        self.output_path = filedialog.askdirectory(initialdir=os.getcwd()) + '/'
         self.relpath.set('/' + os.path.relpath(self.output_path, os.getcwd()))
         count = len(os.listdir(self.output_path))
         logging.info("Change to {}".format(self.output_path))
@@ -294,13 +294,13 @@ class TrainingWindow(tk.Toplevel):
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
-        path = filedialog.askdirectory()
+        path = filedialog.askdirectory(initialdir=os.getcwd())
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
     def save_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path of the file"""
-        path = filedialog.asksaveasfilename()
+        path = filedialog.asksaveasfilename(initialdir=os.getcwd())
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
@@ -315,8 +315,7 @@ class TrainingWindow(tk.Toplevel):
 
     def destructor(self):
         logging.info("Closing model training window")
-        self.destroy()
-        
+        self.destroy()       
 
 class ProductionWindow(tk.Toplevel):
     def __init__(self, parent):
