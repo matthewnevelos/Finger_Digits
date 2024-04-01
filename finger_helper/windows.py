@@ -11,6 +11,7 @@ import platform
 from fastai.vision.all import *
 import csv
 from sklearn.metrics import accuracy_score, confusion_matrix
+import itertools
 
 class ImageCaptureWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -180,7 +181,7 @@ class TrainingWindow(tk.Toplevel):
         
         # Instantiate and initialize tkinter variables
         self.digit_path = tk.StringVar()
-        self.digit_path.set("digits")
+        self.digit_path.set("pics/digits_1")
         self.batch_size = tk.IntVar()
         self.batch_size.set(16)
         self.epochs = tk.IntVar()
@@ -211,7 +212,7 @@ class TrainingWindow(tk.Toplevel):
 
         # Create the sub frames
         self.btn_frame = ttk.Frame(self.param_frame)
-        self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Train path:")                                    # Training directory path
+        self.create_btn(self.btn_frame, self.digit_path, True, (0,0), "Picture directory:")                             # Digit directory
 
         self.widget_frame = ttk.Frame(self.param_frame)
         self.create_widget(self.widget_frame, self.batch_size, ttk.Entry, "Batch size:", 7, (1,0))                      # Batch size
@@ -541,17 +542,31 @@ class ProductionWindow(tk.Toplevel):
 
 class AnalyzeWindow(tk.Toplevel):
     def __init__(self, parent, csv_path):
-        """
-        Create Window which shows confusion matrix of prodution data, and an excel like viewer of the data
-        """
         super().__init__(parent)
         logging.info("Opening production analysis window")
 
-        # Create a Canvas widget for the excel like array
-        self.excel = tk.Canvas(self)
+        # Create panel for confusion matrix image
+        self.panel = tk.Label(self, image=None)  # Placeholder for image, will be updated later
+
+        # Create labels for the accuracy, avg prob
+        self.accuracy_label = tk.Label(self, text="")
+        self.probability_label = tk.Label(self, text="")
+
+        # Pack Widgets
+        self.panel.pack(side=tk.TOP)
+        self.accuracy_label.pack(pady=7)
+        self.probability_label.pack(pady=7)
+
+        # Create a Frame to hold the excel-like array and scrollbar
+        self.excel_frame = tk.Frame(self)
+        self.excel_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create a Canvas widget for the excel-like array
+        self.excel = tk.Canvas(self.excel_frame)
+        self.excel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Create a vertical scrollbar
-        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.excel.yview)
+        scrollbar = ttk.Scrollbar(self.excel_frame, orient=tk.VERTICAL, command=self.excel.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.excel.configure(yscrollcommand=scrollbar.set)
 
@@ -559,31 +574,10 @@ class AnalyzeWindow(tk.Toplevel):
         self.data_frame = tk.Frame(self.excel)
         self.excel.create_window((0, 0), window=self.data_frame, anchor=tk.NW)
 
-        # set frame style
-        self.data_frame.grid_rowconfigure(0, weight=1)
-        self.data_frame.grid_columnconfigure(0, weight=1)
-
-        # Check for scroll
-        self.data_frame.update_idletasks()
-        self.excel.config(scrollregion=self.excel.bbox(tk.ALL))
-
-        # Allow for mousewheel scroll
-        self.excel.bind_all("<MouseWheel>", self.on_mousewheel)
-
         self.load_excel(csv_path)
 
-        # Create panel for confusion matrix image
-        self.panel = tk.Label(self, image = self.matrix_img) #TODO make span 4? columns
-
-        # Create labels for the accuracy, avg prob
-        accuracy_label = tk.Label(self, text=self.accuracy)
-        probability_label = tk.Label(self, text=self.avg_prob)
-
-        # Pack Widgets
-        self.panel.pack()
-        accuracy_label.pack(pady=7)
-        probability_label.pack(pady=7)
-        self.excel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # Bind mouse wheel event to canvas for scrolling
+        self.excel.bind_all("<MouseWheel>", self.on_mousewheel)
 
     def on_mousewheel(self, event):
         self.excel.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -604,8 +598,9 @@ class AnalyzeWindow(tk.Toplevel):
         thresh = cm.max() / 2.
         for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
             coeff = f'{cm[i, j]}'
-            plt.text(j, i, coeff, horizontalalignment="center", verticalalignment="center", color="white"
-                        if cm[i, j] > thresh else "black")
+            plt.text(j, i, coeff, horizontalalignment="center", verticalalignment="center",
+                     color="white"
+                     if cm[i, j] > thresh else "black")
 
         ax = fig.gca()
         ax.set_ylim(len(labels)-.5,-.5)
@@ -626,11 +621,15 @@ class AnalyzeWindow(tk.Toplevel):
         buffer.close()
         plt.close()
 
+        # Update panel with confusion matrix image
+        self.panel.config(image=self.matrix_img)
+        self.panel.image = self.matrix_img
+
     def load_excel(self, reader):
         """
         Load the excel file, generate confusion matrix, calculate accuracy
         """
-        self.csv_file = open(reader, 'r', newline='') 
+        self.csv_file = open(reader, 'r', newline='')
         reader = csv.reader(self.csv_file)
         data = list(reader)
         headers = data[0]
@@ -639,12 +638,17 @@ class AnalyzeWindow(tk.Toplevel):
         true_vals, pred_vals, prob = zip(*[(sub[0], sub[1], sub[2]) for sub in data[1:]])
 
         # Calculate accuracy and average probability
-        self.accuracy = f"Accuracy = {100*accuracy_score(true_vals, pred_vals)}%"
-        self.avg_prob = f"Average probability = {100*sum([float(num_str) for num_str in prob]) / len(prob)}%"
+        accuracy = f"Accuracy = {100 * accuracy_score(true_vals, pred_vals):.2f}%"
+        avg_prob = f"Average probability = {100 * sum([float(num_str) for num_str in prob]) / len(prob):.2f}%"
+
+        # Update accuracy and probability labels
+        self.accuracy_label.config(text=accuracy)
+        self.probability_label.config(text=avg_prob)
 
         # Add headers
         for j, header in enumerate(headers):
-            header_label = tk.Label(self.data_frame, text=header, borderwidth=1, relief="solid", width=15, bg="lightgray")
+            header_label = tk.Label(self.data_frame, text=header, borderwidth=1, relief="solid", width=15,
+                                    bg="lightgray")
             header_label.grid(row=0, column=j, sticky="nsew")
 
         # Add data rows
@@ -654,6 +658,10 @@ class AnalyzeWindow(tk.Toplevel):
                 label.grid(row=i, column=j, sticky="nsew")
 
         self.create_confusion(true_vals, pred_vals)
+
+        # Update canvas scroll region after all widgets are added
+        self.data_frame.update_idletasks()
+        self.excel.config(scrollregion=self.excel.bbox(tk.ALL))
 
         self.csv_file.close()
 
