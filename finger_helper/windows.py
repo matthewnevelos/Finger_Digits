@@ -9,6 +9,8 @@ import threading
 import subprocess
 import platform
 from fastai.vision.all import *
+import csv
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 class ImageCaptureWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -324,7 +326,7 @@ class TrainingWindow(tk.Toplevel):
     def destructor(self):
         """Destroy TrainingWindow"""
         logging.info("Closing model training window")
-        self.destroy()       
+        self.destroy()
 
 class ProductionWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -364,8 +366,12 @@ class ProductionWindow(tk.Toplevel):
         self.current_image = None 
         self.pil_font = ImageFont.truetype("fonts/DejaVuSans.ttf", 40)
 
-        self.csv_file = open("finger_assessment.csv", 'a', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
+        if os.path.exists("finger_assessment.csv"):
+            logging.info("finger_assessment.csv loaded")
+            self.csv_path = "finger_assessment.csv"
+        else:
+            logging.warning('Could not find "finger_assessment.csv"')
+            self.save_btn.config(state=tk.DISABLED)
 
         self.actual_digit_value = tk.StringVar()
         self.actual_digit_value.set("one")   
@@ -389,6 +395,9 @@ class ProductionWindow(tk.Toplevel):
         # Change csv button
         self.change_csv_btn = ttk.Button(self, text="Change CSV", command=self.change_csv)
 
+        # Make entered digit label
+        self.digit_label = ttk.Label(self, text="Actual digit:")
+
         # Actual digit entry
         self.actual_digit = ttk.Entry(self, textvariable=self.actual_digit_value)
 
@@ -397,6 +406,9 @@ class ProductionWindow(tk.Toplevel):
         if not self.cuda:
             self.gpu_enable.config(state=tk.DISABLED)
 
+        # Analyze data
+        self.analyze_btn = ttk.Button(self, text="Analyze production data", command=self.open_analyze)
+
         
         # Order Widgets
         self.save_btn.pack(fill='x')
@@ -404,8 +416,10 @@ class ProductionWindow(tk.Toplevel):
         self.colour_btn.pack(fill='x')
         self.gpu_enable.pack(side="top")
         self.change_csv_btn.pack()
+        self.digit_label.pack()
         self.actual_digit.pack()
         self.panel.pack()
+        self.analyze_btn.pack(pady=10)
 
         # start a self.video_loop that constantly pools the video sensor
         # for the most recently read frame
@@ -464,19 +478,25 @@ class ProductionWindow(tk.Toplevel):
     def destructor(self):
         """ Destroy the root object and release all resources """
         logging.info("Closing production window")
-        self.csv_file.close()
         self.destroy()
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # it is not mandatory in this application
 
     def save_data(self):
         """Save predicted data to csv file"""
+        try:
+            csv_file = open(self.csv_path, 'a', newline='')
+            csv_writer = csv.writer(csv_file)
+        except:
+            logging.error(f"Could not load {self.csv_path}")
+
         data_to_write = [self.actual_digit_value.get().strip().lower(), self.pred, self.pred_prob]
         if data_to_write[0] in ['one', 'two', 'three', 'four', 'five']:
-            self.csv_writer.writerow(data_to_write)
+            csv_writer.writerow(data_to_write)
             logging.info("Data recorded")
         else:
             logging.warning(f"'{data_to_write[0]}' is not a valid classification")
+        csv_file.close()
 
     def choose_model(self):
         """Change the learner used"""
@@ -498,16 +518,11 @@ class ProductionWindow(tk.Toplevel):
 
     def change_csv(self):
         """Change the CSV saved to"""
-        csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd(), title="Select CSV file")
-        try:
-            self.csv_file.close()
-        except Exception as e:
-            logging.warning("Something went wrong:", e)
-        try:
-            self.csv_file = open(csv_path, 'a', newline='')
-            self.csv_writer = csv.writer(self.csv_file)
-        except FileNotFoundError:
-            logging.warning(f"No CSV found. Resorting to previous file")
+        self.csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd(), title="Select CSV file")
+        if self.csv_path == '':
+            logging.warning("No CSV found. Resorting to previous file")
+        else:
+            logging.info(f"{self.csv_path} loaded")
 
     def change_colour(self):
         """Change the label colour"""
@@ -518,3 +533,78 @@ class ProductionWindow(tk.Toplevel):
         """Toggle on and off using GPU acceleration"""
         logging.info(f"Using GPU: {self.GPU.get()}")
         self.learn = load_learner(self.model_path, cpu=not self.GPU.get())
+
+    def open_analyze(self):
+        analyze_win = AnalyzeWindow(self, "finger_assessment.csv")
+        analyze_win.protocol("WM_DELETE_WINDOW", analyze_win.destructor)
+
+
+class AnalyzeWindow(tk.Toplevel):
+    def __init__(self, parent, csv_path):
+        """
+        Create Window which shows confusion matrix of prodution data, and an excel like viewer of the data
+        """
+        super().__init__(parent)
+        logging.info("Opening production analysis window")
+
+        # Create a Canvas widget for the excel like array
+        self.excel = tk.Canvas(self)
+        self.excel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Create a vertical scrollbar
+        scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.excel.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.excel.configure(yscrollcommand=scrollbar.set)
+
+        # Create Frame which will hold the array of data
+        self.data_frame = tk.Frame(self.excel)
+        self.excel.create_window((0, 0), window=self.data_frame, anchor=tk.NW)
+
+        self.load_excel(csv_path)
+
+        # set frame style
+        self.data_frame.grid_rowconfigure(0, weight=1)
+        self.data_frame.grid_columnconfigure(0, weight=1)
+
+        # Check for scroll
+        self.data_frame.update_idletasks()
+        self.excel.config(scrollregion=self.excel.bbox(tk.ALL))
+
+        # Allow for mousewheel scroll
+        self.excel.bind_all("<MouseWheel>", self.on_mousewheel)
+
+    def on_mousewheel(self, event):
+        self.excel.yview_scroll(int(-1*(event.delta/120)), "units")
+
+
+    def load_excel(self, reader):
+        """
+        Load the excel file, generate confusion matrix, calculate accuracy
+        """
+        self.csv_file = open(reader, 'r', newline='') 
+        reader = csv.reader(self.csv_file)
+        data = list(reader)
+        headers = data[0]
+
+        # Add headers
+        for j, header in enumerate(headers):
+            header_label = tk.Label(self.data_frame, text=header, borderwidth=1, relief="solid", width=15, bg="lightgray")
+            header_label.grid(row=0, column=j, sticky="nsew")
+
+        # Add data rows
+        for i, row in enumerate(data[1:], start=1):
+            for j, value in enumerate(row):
+                label = tk.Label(self.data_frame, text=value, borderwidth=1, relief="solid", width=15)
+                label.grid(row=i, column=j, sticky="nsew")
+
+        true_vals = [sub[0] for sub in data[1:]]
+        pred_vals = [sub[1] for sub in data[1:]]
+        self.acc = f'Accuracy = {100*accuracy_score(true_vals, pred_vals)}%'
+        logging.info(true_vals)
+        logging.info(self.acc)
+        self.csv_file.close()
+
+    def destructor(self):
+        """Destroy AnalyzeWindow"""
+        logging.info("Closing production analysis window")
+        self.destroy()
