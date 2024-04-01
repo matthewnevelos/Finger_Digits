@@ -549,7 +549,6 @@ class AnalyzeWindow(tk.Toplevel):
 
         # Create a Canvas widget for the excel like array
         self.excel = tk.Canvas(self)
-        self.excel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Create a vertical scrollbar
         scrollbar = ttk.Scrollbar(self, orient=tk.VERTICAL, command=self.excel.yview)
@@ -559,8 +558,6 @@ class AnalyzeWindow(tk.Toplevel):
         # Create Frame which will hold the array of data
         self.data_frame = tk.Frame(self.excel)
         self.excel.create_window((0, 0), window=self.data_frame, anchor=tk.NW)
-
-        self.load_excel(csv_path)
 
         # set frame style
         self.data_frame.grid_rowconfigure(0, weight=1)
@@ -573,9 +570,61 @@ class AnalyzeWindow(tk.Toplevel):
         # Allow for mousewheel scroll
         self.excel.bind_all("<MouseWheel>", self.on_mousewheel)
 
+        self.load_excel(csv_path)
+
+        # Create panel for confusion matrix image
+        self.panel = tk.Label(self, image = self.matrix_img) #TODO make span 4? columns
+
+        # Create labels for the accuracy, avg prob
+        accuracy_label = tk.Label(self, text=self.accuracy)
+        probability_label = tk.Label(self, text=self.avg_prob)
+
+        # Pack Widgets
+        self.panel.pack()
+        accuracy_label.pack(pady=7)
+        probability_label.pack(pady=7)
+        self.excel.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
     def on_mousewheel(self, event):
         self.excel.yview_scroll(int(-1*(event.delta/120)), "units")
 
+    def create_confusion(self, true_val, pred_val, cmap:str="Blues"):
+        title = "Confusion Matrix"
+        "Plot the confusion matrix, with `title` and using `cmap`."
+        # This function is mainly copied from the sklearn docs
+        labels = ['one', 'two', 'three', 'four', 'five']
+        cm = confusion_matrix(true_val, pred_val)
+        fig = plt.figure()
+        plt.imshow(cm, interpolation='nearest', cmap=cmap)
+        plt.title(title)
+        tick_marks = np.arange(len(labels))
+        plt.xticks(tick_marks, labels, rotation=90)
+        plt.yticks(tick_marks, labels, rotation=0)
+
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            coeff = f'{cm[i, j]}'
+            plt.text(j, i, coeff, horizontalalignment="center", verticalalignment="center", color="white"
+                        if cm[i, j] > thresh else "black")
+
+        ax = fig.gca()
+        ax.set_ylim(len(labels)-.5,-.5)
+
+        plt.tight_layout()
+        plt.ylabel('Actual')
+        plt.xlabel('Predicted')
+        plt.grid(False)
+        # plt.show()
+
+        # Assign to variable
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='png')
+        buffer.seek(0)
+        img_temp = Image.open(buffer)
+        self.matrix_img = ImageTk.PhotoImage(image=ImageOps.scale(img_temp, 0.7))
+        img_temp.close()
+        buffer.close()
+        plt.close()
 
     def load_excel(self, reader):
         """
@@ -585,6 +634,13 @@ class AnalyzeWindow(tk.Toplevel):
         reader = csv.reader(self.csv_file)
         data = list(reader)
         headers = data[0]
+
+        # Seperate into true, predicted, and probability
+        true_vals, pred_vals, prob = zip(*[(sub[0], sub[1], sub[2]) for sub in data[1:]])
+
+        # Calculate accuracy and average probability
+        self.accuracy = f"Accuracy = {100*accuracy_score(true_vals, pred_vals)}%"
+        self.avg_prob = f"Average probability = {100*sum([float(num_str) for num_str in prob]) / len(prob)}%"
 
         # Add headers
         for j, header in enumerate(headers):
@@ -597,11 +653,8 @@ class AnalyzeWindow(tk.Toplevel):
                 label = tk.Label(self.data_frame, text=value, borderwidth=1, relief="solid", width=15)
                 label.grid(row=i, column=j, sticky="nsew")
 
-        true_vals = [sub[0] for sub in data[1:]]
-        pred_vals = [sub[1] for sub in data[1:]]
-        self.acc = f'Accuracy = {100*accuracy_score(true_vals, pred_vals)}%'
-        logging.info(true_vals)
-        logging.info(self.acc)
+        self.create_confusion(true_vals, pred_vals)
+
         self.csv_file.close()
 
     def destructor(self):
