@@ -12,6 +12,9 @@ from fastai.vision.all import *
 import csv
 from sklearn.metrics import accuracy_score, confusion_matrix
 import itertools
+import os
+
+#TODO make folder so that pics, model, results etc. are all contained in their own folder
 
 class ImageCaptureWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -113,11 +116,11 @@ class ImageCaptureWindow(tk.Toplevel):
         """
         Add button for popup gui to change directory
         """
-        self.output_path = filedialog.askdirectory(initialdir=os.getcwd(), title="Set output directory") + '/'
-        self.relpath.set('/' + os.path.relpath(self.output_path, os.getcwd()))
+        self.output_path = filedialog.askdirectory(initialdir=os.path.join(os.getcwd(), "Projects"), title="Set output directory") + '/'
+        self.relpath.set('\\' + os.path.relpath(self.output_path, os.getcwd()))
         count = len(os.listdir(self.output_path))
         logging.info("Change to {}".format(self.output_path))
-        logging.info("current image count in output folder is {}".format(count))
+        logging.info("Current image count in output folder is {}".format(count))
 
     def burst(self):
         """
@@ -303,13 +306,13 @@ class TrainingWindow(tk.Toplevel):
 
     def dir_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path for a directory"""
-        path = filedialog.askdirectory(initialdir=os.getcwd(), title="Set directory")
+        path = filedialog.askdirectory(initialdir=os.path.join(os.getcwd(), "Projects"), title="Set directory")
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
     def save_path(self, attr: tk.StringVar):
         """Set a StringVar to the relative path of the file"""
-        path = filedialog.asksaveasfilename(initialdir=os.getcwd(), title="Set file path")
+        path = filedialog.asksaveasfilename(initialdir=os.path.join(os.getcwd(), "Projects"), title="Set file path")
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
@@ -364,15 +367,10 @@ class ProductionWindow(tk.Toplevel):
 
         self.choose_model()
 
-        self.current_image = None 
-        self.pil_font = ImageFont.truetype("fonts/DejaVuSans.ttf", 40)
+        self.csv_path = None
 
-        if os.path.exists("finger_assessment.csv"):
-            logging.info("finger_assessment.csv loaded")
-            self.csv_path = "finger_assessment.csv"
-        else:
-            logging.warning('Could not find "finger_assessment.csv"')
-            self.save_btn.config(state=tk.DISABLED)
+        self.current_image = None 
+        self.pil_font = ImageFont.truetype("finger_helper/fonts/DejaVuSans.ttf", 40)
 
         self.actual_digit_value = tk.StringVar()
         self.actual_digit_value.set("one")   
@@ -386,6 +384,7 @@ class ProductionWindow(tk.Toplevel):
 
         # Save screenshot button
         self.save_btn = ttk.Button(self, text="Save", command=self.save_data)
+        self.save_btn.config(state=tk.DISABLED) # need to set csv first
         
         # Change model button
         self.model_btn = ttk.Button(self, text="Change model", command=self.choose_model)
@@ -409,6 +408,7 @@ class ProductionWindow(tk.Toplevel):
 
         # Analyze data
         self.analyze_btn = ttk.Button(self, text="Analyze production data", command=self.open_analyze)
+        self.analyze_btn.config(state=tk.DISABLED) # need to set csv first
 
         
         # Order Widgets
@@ -494,14 +494,14 @@ class ProductionWindow(tk.Toplevel):
         data_to_write = [self.actual_digit_value.get().strip().lower(), self.pred, self.pred_prob]
         if data_to_write[0] in ['one', 'two', 'three', 'four', 'five']:
             csv_writer.writerow(data_to_write)
-            logging.info("Data recorded")
+            logging.info(f"Data recorded --- {data_to_write}")
         else:
             logging.warning(f"'{data_to_write[0]}' is not a valid classification")
         csv_file.close()
 
     def choose_model(self):
         """Change the learner used"""
-        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.getcwd(), title="Set model file path")
+        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.path.join(os.getcwd(), "Projects"), title="Set model file path")
         try:
             self.learn = load_learner(self.model_path, cpu= not self.GPU.get())
             logging.info(f"learner {self.model_path} loaded")
@@ -519,11 +519,14 @@ class ProductionWindow(tk.Toplevel):
 
     def change_csv(self):
         """Change the CSV saved to"""
-        self.csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.getcwd(), title="Select CSV file")
-        if self.csv_path == '':
-            logging.warning("No CSV found. Resorting to previous file")
+        csv_path = filedialog.askopenfilename(filetypes=[("Comma-seprated value", ".csv .CSV")], initialdir=os.path.dirname(os.path.dirname(self.model_path)), title="Select CSV file")
+        if csv_path == '':
+            logging.warning(f"No CSV found. Resorting to previous file \"{self.csv_path}\"")
         else:
+            self.csv_path = csv_path
             logging.info(f"{self.csv_path} loaded")
+            self.save_btn.config(state=tk.NORMAL)
+            self.analyze_btn.config(state=tk.NORMAL)
 
     def change_colour(self):
         """Change the label colour"""
@@ -536,7 +539,7 @@ class ProductionWindow(tk.Toplevel):
         self.learn = load_learner(self.model_path, cpu=not self.GPU.get())
 
     def open_analyze(self):
-        analyze_win = AnalyzeWindow(self, "finger_assessment.csv")
+        analyze_win = AnalyzeWindow(self, self.csv_path)
         analyze_win.protocol("WM_DELETE_WINDOW", analyze_win.destructor)
 
 
@@ -544,6 +547,9 @@ class AnalyzeWindow(tk.Toplevel):
     def __init__(self, parent, csv_path):
         super().__init__(parent)
         logging.info("Opening production analysis window")
+
+        # Reload window button
+        self.refresh_btn = tk.Button(self, text="Refresh Data", command=self.refresh)
 
         # Create panel for confusion matrix image
         self.panel = tk.Label(self, image=None)  # Placeholder for image, will be updated later
@@ -553,6 +559,7 @@ class AnalyzeWindow(tk.Toplevel):
         self.probability_label = tk.Label(self, text="")
 
         # Pack Widgets
+        self.refresh_btn.pack(fill="both", pady=5)
         self.panel.pack(side=tk.TOP)
         self.accuracy_label.pack(pady=7)
         self.probability_label.pack(pady=7)
@@ -574,7 +581,8 @@ class AnalyzeWindow(tk.Toplevel):
         self.data_frame = tk.Frame(self.excel)
         self.excel.create_window((0, 0), window=self.data_frame, anchor=tk.NW)
 
-        self.load_excel(csv_path)
+        self.csv_path = csv_path
+        self.load_excel(self.csv_path)
 
         # Bind mouse wheel event to canvas for scrolling
         self.excel.bind_all("<MouseWheel>", self.on_mousewheel)
@@ -664,6 +672,9 @@ class AnalyzeWindow(tk.Toplevel):
         self.excel.config(scrollregion=self.excel.bbox(tk.ALL))
 
         self.csv_file.close()
+
+    def refresh(self):
+        self.load_excel(self.csv_path)
 
     def destructor(self):
         """Destroy AnalyzeWindow"""
