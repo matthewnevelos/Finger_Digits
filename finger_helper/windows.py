@@ -204,8 +204,30 @@ class TrainingWindow(tk.Toplevel):
         self.confusion.set(True)
         self.confusion_path = tk.StringVar()
         self.confusion_path.set("models/confusion matrix/img1.png")
-        self.model_list = ["resnet18","resnet34","resnet50","resnet101","resnet152", 
-                           "resnext50_32x4d","resnext101_32x8d","resnext101_64x4d"]
+        self.model_list = [
+        'alexnet',
+        'densenet121',
+        'densenet161',
+        'densenet201',
+        'efficientnet_b0',
+        'efficientnet_b1',
+        'googlenet',
+        'inception_v3',
+        'mnasnet0_5',
+        'mnasnet1_0',
+        'mnasnet0_75',
+        'mnasnet1_3',
+        'mobilenetV2',
+        'mobilenet_v3_small',
+        'resnet18',
+        'resnet34',
+        'resnet50',
+        'squeezenet1_0',
+        'squeezenet1_1',
+        'vgg13_bn',
+        'vgg16',
+        'vgg19_bn',]
+        
         self.base_model = self.model_list[0]
         self.output_function = tk.StringVar()
 
