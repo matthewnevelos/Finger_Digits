@@ -210,7 +210,6 @@ class TrainingWindow(tk.Toplevel):
         'EfficientNet_b0',
         'EfficientNet_b1',
         'GoogleNet',
-        'Inception_v3',
         'MnasNet0_5',
         'MnasNet1_0',
         'MobileNetV2',
