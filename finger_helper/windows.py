@@ -184,7 +184,7 @@ class TrainingWindow(tk.Toplevel):
         
         # Instantiate and initialize tkinter variables
         self.digit_path = tk.StringVar()
-        self.digit_path.set("pics/digits_1")
+        self.digit_path.set("Projects/digits_1.0/digits")
         self.batch_size = tk.IntVar()
         self.batch_size.set(16)
         self.epochs = tk.IntVar()
@@ -194,7 +194,7 @@ class TrainingWindow(tk.Toplevel):
         self.lr = tk.DoubleVar()
         self.lr.set(3e-5)
         self.output_path = tk.StringVar()
-        self.output_path.set("models/finger_count.pkl")
+        self.output_path.set("Projects/digits_1.0/models/model1.pkl")
         self.cuda = tk.BooleanVar()
         if torch.cuda.is_available(): self.cuda.set(True) 
         else: self.cuda.set(False)
@@ -203,7 +203,7 @@ class TrainingWindow(tk.Toplevel):
         self.confusion = tk.BooleanVar()
         self.confusion.set(True)
         self.confusion_path = tk.StringVar()
-        self.confusion_path.set("models/confusion matrix/img1.png")
+        self.confusion_path.set("Projects/digits_1.0/results/confusion_matrix.png")
         self.model_list = [
         'AlexNet',
         'DenseNet121',
@@ -211,7 +211,7 @@ class TrainingWindow(tk.Toplevel):
         'DenseNet201',
         'EfficientNet_b0',
         'EfficientNet_b1',
-        'EoogleNet',
+        'GoogleNet',
         'Inception_v3',
         'MnasNet0_5',
         'MnasNet1_0',
@@ -228,7 +228,7 @@ class TrainingWindow(tk.Toplevel):
         'VGG16',
         'VGG19_bn']
         
-        self.base_model = self.model_list[0]
+        self.base_model = tk.StringVar()
         self.output_function = tk.StringVar()
 
         # Frame for all of the model parameters
@@ -249,8 +249,8 @@ class TrainingWindow(tk.Toplevel):
         self.create_widget(self.widget_frame, self.confusion, ttk.Checkbutton, "Generate confusion matrix:", 0, (4,3))  # Create confusion matrix
 
         self.btn_frame2 = ttk.Frame(self.param_frame)
-        self.create_btn(self.btn_frame2, self.output_path, True, (0,0), "Model output:")                                # Saved model output
-        self.create_btn(self.btn_frame2, self.confusion_path, True, (1,0), "Confusion output:")                         # Confusion matrix output
+        self.create_btn(self.btn_frame2, self.output_path, False, (0,0), "Model output:", "model1.pkl")                 # Saved model output
+        self.create_btn(self.btn_frame2, self.confusion_path, False, (1,0), "Confusion output:", "confusion_matrix.png")# Confusion matrix output
 
         # Pack sub frames into the parameter frame
         self.btn_frame.pack()
@@ -273,9 +273,9 @@ class TrainingWindow(tk.Toplevel):
         self.copy_btn.grid(row=3, column=0, pady=5)
 
 
-    def create_btn(self, frame: ttk.Frame, attr, mode, loc, text):
+    def create_btn(self, frame: ttk.Frame, attr, mode, loc, text, initialfile=None):
         """
-        Create a frame to hold data in the form Label - Entry, Button.
+        Create a frame to hold data in the form Label - Entry - Button.
         This is for variables which hold a path since there is a browse button associated with it.
         Things get ugly when shared with the 2 column variables (Label - Entry)
         The buttons are `browse` buttons which go along with changing the path of a directory or file
@@ -293,11 +293,11 @@ class TrainingWindow(tk.Toplevel):
         if mode:
             button = ttk.Button(frame, text="Browse", command=lambda: self.dir_path(attr))
         else:
-            button = ttk.Button(frame, text="Browse", command=lambda: self.save_path(attr))
+            button = ttk.Button(frame, text="Browse", command=lambda: self.save_path(attr, initialfile))
 
         # Place the widgets
         label.grid(row=loc[0], column=loc[1], padx=5, pady=5)
-        entry.grid(row=loc[0], column=loc[1]+1, ipadx=40, padx=5, pady=5)
+        entry.grid(row=loc[0], column=loc[1]+1, ipadx=72, padx=5, pady=5)
         button.grid(row=loc[0], column=loc[1]+2, padx=5, pady=5)
 
 
@@ -319,9 +319,10 @@ class TrainingWindow(tk.Toplevel):
             if attr.get()==False: widget.config(state=tk.DISABLED)
         elif widget_type==ttk.Combobox:
             # Only one Combobox so its hardcoded
-            widget = ttk.Combobox(frame, textvariable=attr, width=16)
+            widget = ttk.Combobox(frame, width=16)
             widget['values'] = self.model_list
             widget.set(widget['values'][0])
+            widget.bind("<<ComboboxSelected>>", lambda event: attr.set(widget.get()))
 
         label.grid(row=loc[0], column=loc[1], sticky='e', padx=(15,0), pady=6)
         widget.grid(row=loc[0], column=loc[1]+1, padx=(0,10), pady=6, ipadx=0, sticky='w')
@@ -332,15 +333,15 @@ class TrainingWindow(tk.Toplevel):
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
-    def save_path(self, attr: tk.StringVar):
+    def save_path(self, attr: tk.StringVar, initialfile):
         """Set a StringVar to the relative path of the file"""
-        path = filedialog.asksaveasfilename(initialdir=os.path.join(os.getcwd(), "Projects"), title="Set file path")
+        path = filedialog.asksaveasfilename(initialdir=os.path.join(os.getcwd(), "Projects"), initialfile=initialfile, title="Set file path", filetypes=[("PNG", ".png"), ("JPEG", ".jpg, .jpeg, .jpe, .jfif, .jif")])
         rel_path = os.path.relpath(path)
         attr.set(rel_path)
 
     def generate(self):
         """Generate code ready to copy and paste into trainer.ipynb"""
-        self.output_function.set(f"train_model(digit_folder={self.digit_path.get()}, batch_size={self.batch_size.get()}, epochs={self.epochs.get()}, seed={self.seed.get()}, lr={self.lr.get()}, output={self.output_path.get()}, save_conf={self.confusion.get()}, conf_out={self.confusion_path.get()}, model={self.base_model})")
+        self.output_function.set(f"train_model(digit_folder=\"{self.digit_path.get()}\", batch_size={self.batch_size.get()}, epochs={self.epochs.get()}, seed={self.seed.get()}, lr={self.lr.get()}, model_output=\"{self.output_path.get()}\", save_conf={self.confusion.get()}, conf_out=\"{self.confusion_path.get()}\", base_model=\"{self.base_model.get()}\")")
 
     def copy(self):
         """Copy generated code to clipboard"""
