@@ -207,26 +207,21 @@ class TrainingWindow(tk.Toplevel):
         self.model_list = [
         'AlexNet',
         'DenseNet121',
-        'DenseNet161',
-        'DenseNet201',
         'EfficientNet_b0',
         'EfficientNet_b1',
         'GoogleNet',
         'Inception_v3',
         'MnasNet0_5',
         'MnasNet1_0',
-        'MnasNet0_75',
-        'MnasNet1_3',
         'MobileNetV2',
         'MobileNet_v3_small',
         'ResNet18',
-        'ResNet34',
         'ResNet50',
         'SqueezeNet1_0',
         'SqueezeNet1_1',
         'VGG13_bn',
         'VGG16',
-        'VGG19_bn']
+        ]
         
         self.base_model = tk.StringVar()
         self.output_function = tk.StringVar()
