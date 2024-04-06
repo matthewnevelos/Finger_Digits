@@ -1,0 +1,26 @@
+08:41:46 - INFO - Logger setup
+08:41:46 - INFO - CUDA: True
+08:41:46 - INFO - Device: NVIDIA GeForce RTX 3070
+08:41:46 - INFO - Base model architecture: MobileNet_v3_small
+08:41:46 - INFO - Seed: 69
+08:41:46 - INFO - DataBlock created
+08:41:46 - INFO - DataLoader created
+08:41:47 - INFO - Learner created on cuda
+08:41:47 - INFO - Training started: 
+	Number of epochs = 12 
+	Batch size = 16 
+	Learning rate = 3e-05
+08:41:47 - INFO - Device memory: 8191.5 MB
+08:45:22 - INFO - Training finished 
+	Time taken = 0 hours, 3 minutes, 34.92 seconds
+08:45:22 - INFO - Total memory allocated = 13577.16 GB
+08:45:22 - INFO - Peak memory allocated = 1.71 GB
+08:45:22 - INFO - Current memory allocated = 0.04 GB
+08:45:26 - INFO - Confusion matrix: 
+[[48  0  2  1  9]
+ [ 3 41  3  9  4]
+ [ 0  0 59  0  1]
+ [ 1  7  3 21 28]
+ [ 2  1 10  2 45]]
+08:45:28 - INFO - Validation accuracy = 0.713
+08:45:28 - INFO - Exiting logger

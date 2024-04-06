@@ -1,0 +1,7 @@
+08:41:33 - INFO - Logger setup
+08:41:33 - INFO - CUDA: True
+08:41:33 - INFO - Device: NVIDIA GeForce RTX 3070
+08:41:33 - INFO - Base model architecture: MobileNetV2
+08:41:33 - INFO - Seed: 69
+08:41:33 - INFO - DataBlock created
+08:41:33 - INFO - DataLoader created

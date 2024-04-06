@@ -1,0 +1,28 @@
+10:01:31 - INFO - Logger setup
+10:01:31 - INFO - CUDA: True
+10:01:31 - INFO - Device: NVIDIA GeForce RTX 3070
+10:01:31 - INFO - Base model architecture: SqueezeNet1_0
+10:01:31 - INFO - Seed: 69
+10:01:31 - INFO - DataBlock created
+10:01:31 - INFO - DataLoader created
+10:01:32 - INFO - Learner created on cuda
+10:01:32 - INFO - Training started: 
+	Number of epochs = 12 
+	Batch size = 16 
+	Learning rate = 3e-05
+10:01:32 - INFO - Device memory: 8191.5 MB
+10:01:32 - INFO - Estimated Total Size: 9460.70 MB
+10:01:32 - WARNING - Estimated memory usage is larger than device's memory
+10:06:14 - INFO - Training finished 
+	Time taken = 0 hours, 4 minutes, 42.51 seconds
+10:06:14 - INFO - Total memory allocated = 15256.26 GB
+10:06:14 - INFO - Peak memory allocated = 3.91 GB
+10:06:14 - INFO - Current memory allocated = 0.43 GB
+10:06:20 - INFO - Confusion matrix: 
+[[60  0  0  0  0]
+ [ 1 53  2  1  3]
+ [ 0  0 59  0  1]
+ [ 2  6  0 40 12]
+ [ 0  0  2  0 58]]
+10:06:22 - INFO - Validation accuracy = 0.900
+10:06:22 - INFO - Exiting logger
