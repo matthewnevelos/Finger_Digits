@@ -208,18 +208,13 @@ class TrainingWindow(tk.Toplevel):
         'AlexNet',
         'DenseNet121',
         'EfficientNet_b0',
-        'EfficientNet_b1',
         'GoogleNet',
-        'MnasNet0_5',
-        'MnasNet1_0',
-        'MobileNetV2',
         'MobileNet_v3_small',
         'ResNet18',
         'ResNet50',
         'SqueezeNet1_0',
         'SqueezeNet1_1',
         'VGG13_bn',
-        'VGG16',
         ]
         
         self.base_model = tk.StringVar()
@@ -608,7 +603,7 @@ class AnalyzeWindow(tk.Toplevel):
         self.excel.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def create_confusion(self, true_val, pred_val, cmap:str="Blues"):
-        title = "Confusion Matrix"
+        title = "Confusion Matrix (Production)"
         "Plot the confusion matrix, with `title` and using `cmap`."
         # This function is mainly copied from the sklearn docs
         labels = ['one', 'two', 'three', 'four', 'five']
