@@ -513,7 +513,7 @@ class ProductionWindow(tk.Toplevel):
 
     def choose_model(self):
         """Change the learner used"""
-        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.path.join(os.getcwd(), "Projects"), title="Set model file path")
+        self.model_path = filedialog.askopenfilename(filetypes=[("Pickle", ".pkl")], initialdir=os.path.join(os.getcwd(), "Projects"), title="Select model")
         try:
             self.learn = load_learner(self.model_path, cpu= not self.GPU.get())
             logging.info(f"learner {self.model_path} loaded")
