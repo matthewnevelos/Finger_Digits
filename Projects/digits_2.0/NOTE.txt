@@ -10,6 +10,7 @@ fingers covering face
 In addition:
 
 back of the hand
+different hand orientation
 dim lighting
 different angles of the hand
 different textured hands (gloves)
