@@ -1,21 +1,28 @@
-13:55:01 - INFO - Logger setup
-13:55:01 - INFO - CUDA: True
-13:55:01 - INFO - Device: NVIDIA GeForce RTX 3070
-13:55:01 - INFO - Base model architecture: DenseNet121
-13:55:01 - INFO - Seed: 69
-13:55:01 - INFO - DataBlock created
-13:55:02 - INFO - DataLoader created
-13:55:02 - INFO - Learner created on cuda
-13:55:02 - INFO - Training started: 
+15:09:50 - INFO - Logger setup
+15:09:51 - INFO - CUDA: True
+15:09:51 - INFO - Device: NVIDIA GeForce RTX 3070
+15:09:51 - INFO - Base model architecture: DenseNet121
+15:09:51 - INFO - Seed: 69
+15:09:51 - INFO - DataBlock created
+15:09:51 - INFO - DataLoader created
+15:09:52 - INFO - Learner created on cuda
+15:09:52 - INFO - Training started: 
 	Number of epochs = 12 
-	Batch size = 8 
+	Batch size = 12 
 	Learning rate = 3e-05
-13:55:02 - INFO - Device memory: 8191.5 MB
-13:55:02 - ERROR - 'list' object has no attribute 'size'
-13:55:02 - WARNING - Could not estimate estimated memory usage
-14:43:28 - ERROR - Failed to train model
-14:43:28 - INFO - Training finished 
-	Time taken = 0 hours, 48 minutes, 26.06 seconds
-14:43:28 - INFO - Total memory allocated = 208418.26 GB
-14:43:28 - INFO - Peak memory allocated = 6.28 GB
-14:43:28 - INFO - Current memory allocated = 0.16 GB
+15:09:52 - INFO - Device memory: 8191.5 MB
+15:09:52 - ERROR - 'list' object has no attribute 'size'
+15:09:52 - WARNING - Could not estimate estimated memory usage
+21:14:04 - INFO - Training finished 
+	Time taken = 6 hours, 4 minutes, 12.17 seconds
+21:14:04 - INFO - Total memory allocated = 262479.94 GB
+21:14:04 - INFO - Peak memory allocated = 9.25 GB
+21:14:04 - INFO - Current memory allocated = 0.14 GB
+21:15:30 - INFO - Confusion matrix: 
+[[324   6   0   0   0]
+ [  3 320   1   7   1]
+ [  0   0 358   2   4]
+ [  5  11   0 315   8]
+ [  2   0   7   3 313]]
+21:15:57 - INFO - Validation accuracy = 0.964
+21:15:58 - INFO - Exiting logger
