@@ -1,0 +1,26 @@
+21:40:23 - INFO - Logger setup
+21:40:23 - INFO - CUDA: True
+21:40:23 - INFO - Device: NVIDIA GeForce RTX 3070
+21:40:23 - INFO - Base model architecture: ResNet18
+21:40:23 - INFO - Seed: 69
+21:40:23 - INFO - DataBlock created
+21:40:23 - INFO - DataLoader created
+21:40:23 - INFO - Learner created on cuda
+21:40:23 - INFO - Training started: 
+	Number of epochs = 12 
+	Batch size = 12 
+	Learning rate = 3e-05
+21:40:23 - INFO - Device memory: 8191.5 MB
+21:52:47 - INFO - Training finished 
+	Time taken = 0 hours, 12 minutes, 23.01 seconds
+21:52:47 - INFO - Total memory allocated = 24669.00 GB
+21:52:47 - INFO - Peak memory allocated = 1.80 GB
+21:52:47 - INFO - Current memory allocated = 0.19 GB
+21:53:07 - INFO - Confusion matrix: 
+[[117   6   0   0   2]
+ [  5 115   0   2   3]
+ [  0   0 125   0   0]
+ [  6  27   1  67  24]
+ [  0   4   7   7 107]]
+21:53:14 - INFO - Validation accuracy = 0.850
+21:53:14 - INFO - Exiting logger
